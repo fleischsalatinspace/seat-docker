@@ -2,3 +2,5 @@
 .env.prod-nocaddy
 .env.dev
 .env.dev-nocaddy
+config/Caddyfile-dev
+config/Caddyfile-prod
