@@ -1,0 +1,52 @@
+version: "2.4"
+#TODO: where do we need restart policy
+#TODO: cpu/mem limits
+
+services:
+
+  mariadb:
+    image: mariadb:10
+    restart: always
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: "${DB_DATABASE}"
+    healthcheck:
+          test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", '-u', '$DB_USERNAME', '-p$DB_PASSWORD']
+          timeout: 20s
+          retries: 3
+    volumes:
+      - "mariadb-data:/var/lib/mysql"
+    networks:
+      - seat-network
+
+  redis:
+    image: redis:5-alpine
+    restart: always
+    networks:
+      - seat-network
+
+  seat-web:
+    image: eveseat/seat:4
+    restart: always
+    command: web
+    env_file: "${ENV_FILE}"
+    networks:
+      - seat-network
+
+  seat-worker:
+    image: eveseat/seat:4
+    restart: always
+    command: worker
+    env_file: "${ENV_FILE}"
+    networks:
+      - seat-network
+
+  seat-cron:
+    image: eveseat/seat:4
+    restart: always
+    command: cron
+    env_file: "${ENV_FILE}"
+    networks:
+      - seat-network

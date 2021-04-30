@@ -1,0 +1,60 @@
+version: "2.4"
+
+services:
+
+  mariadb:
+    extends:
+      file: docker-compose-base.yml
+      service: mariadb
+
+  redis:
+    extends:
+      file: docker-compose-base.yml
+      service: redis
+
+  seat-web:
+    extends:
+      file: docker-compose-base.yml
+      service: seat-web
+    networks:
+            seat-network:
+            reverse-proxy-net:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  seat-worker:
+    extends:
+      file: docker-compose-base.yml
+      service: seat-worker
+    depends_on:
+      seat-web: # so that we can get db migrations done
+        condition: service_started 
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+
+  seat-cron:
+    extends:
+      file: docker-compose-base.yml
+      service: seat-cron
+    depends_on:
+      seat-web: # so that we can get db migrations done
+        condition: service_started 
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+volumes:
+    mariadb-data:
+
+networks:
+    seat-network:
+    reverse-proxy-net:
+            name: reverse-proxy-net
+            external: true

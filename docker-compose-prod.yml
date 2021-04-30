@@ -1,0 +1,72 @@
+version: "2.4"
+
+services:
+
+  mariadb:
+    extends:
+      file: docker-compose-base.yml
+      service: mariadb
+
+  redis:
+    extends:
+      file: docker-compose-base.yml
+      service: redis
+
+  seat-web:
+    extends:
+      file: docker-compose-base.yml
+      service: seat-web
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  seat-worker:
+    extends:
+      file: docker-compose-base.yml
+      service: seat-worker
+    depends_on:
+      seat-web: # so that we can get db migrations done
+        condition: service_started 
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+
+  seat-cron:
+    extends:
+      file: docker-compose-base.yml
+      service: seat-cron
+    depends_on:
+      seat-web: # so that we can get db migrations done
+        condition: service_started 
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "443:443"
+      - "80:80"
+    networks:
+      - seat-network
+    #TODO: create caddy-alpine based image with entrypoint to replace vhost config in caddy configfile
+    #TODO: also log access-logs to sdout to replace the bind mount caddy-logs-prod
+    volumes:
+            - ./config/Caddyfile-prod:/etc/caddy/Caddyfile
+            - caddy-data-prod:/data
+            - caddy-config-prod:/config
+            - caddy-logs-prod:/var/log/
+
+volumes:
+    mariadb-data:
+    caddy-data-prod:
+    caddy-config-prod:
+    caddy-logs-prod:
+
+networks:
+    seat-network:
