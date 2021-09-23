@@ -30,7 +30,5 @@ jobs:
       
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@1.0.0
-        with:
-          ignore: bootstrap.sh Dockerfile
         env:
-          SHELLCHECK_OPTS: -x -e SC2034 -e SC2154 -e SC2129
+          SHELLCHECK_OPTS: -a -x -e SC2034 -e SC2154 -e SC2129 production.sh
