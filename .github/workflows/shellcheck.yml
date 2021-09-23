@@ -28,7 +28,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       
+        # github actions shellcheck can only ingore directories, not files; so lets just keep this for now
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@1.0.0
         env:
-          SHELLCHECK_OPTS: -e SC2034 -e SC2154 -e SC2129
+          SHELLCHECK_OPTS: -x -e SC2034 -e SC2154 -e SC2129
